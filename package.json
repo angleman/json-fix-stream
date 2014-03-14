@@ -1,6 +1,6 @@
 {
   "name": "json-fix-stream",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Fix malformed JSON stream",
   "main": "index.js",
   "scripts": {

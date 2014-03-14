@@ -10,9 +10,23 @@ npm install json-fix-stream
 
 ## Usage :bulb:
 
-```js
-jsonFixStream = new require('json-fix-stream')
+attandance.json
+
+```json
+{"name":"joe", "city":"Portland", "comment":"this is great"}
+{"name":"trouble", "city":"Near You", "comment":"i like to add
+newlines in my
+comments"}
 ```
+
+```js
+split         = new require('split')("}\n") // parse json with newlines in attributes
+jsonFixStream = new require('json-fix-stream') // fix the nixed } at the end of each line
+inStream      = require('fs').createReadStream('attandance.json')
+inStream.pipe(split).pipe(fix).pipe(process.stdout) // each record is sucessfully parsed and output
+```
+
+
 
 ## Contributions :muscle:
 

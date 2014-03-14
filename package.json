@@ -1,0 +1,24 @@
+{
+  "name": "json-fix-stream",
+  "version": "0.1.0",
+  "description": "Fix malformed JSON stream",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -R list test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angleman/json-fix-stream"
+  },
+  "bugs": {
+    "url": "https://github.com/angleman/json-fix-stream/issues"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "grunt": "^0.4.3",
+    "grunt-bump": "0.0.13",
+    "mocha": "^1.17.1",
+    "should": "^3.1.3"
+  }
+}

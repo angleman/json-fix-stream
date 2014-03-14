@@ -12,8 +12,9 @@ function JsonFixStream(config) {
  	stream.call(this, { objectMode: true })
 	config = (config) ? config : {}
 	var DEFAULT = {
-		ignoreErrors: false,
-		replace:      {}
+		ignoreErrors:       false,
+		replace:            {},
+		collapseWhitespace: false
 	}
 	config = conflate(DEFAULT, config)
 
@@ -27,35 +28,31 @@ function JsonFixStream(config) {
 				json            = S(json).trim().s
 				var first       = json.substr(0,1)
 				var last        = json.substr(-1)
-				if (first == '[') {
-					json += ']'
-				} else if (first == '{') {
-					json += '}'
-				} else {
-					if (!config.ignoreErrors) this.emit('error', 'could not fix: ' + json)
-					callback()
-					return
+				if (last == ',') {
+					json = json.substr(0, -1) // drop dangling comma
+				} else if (first == '[') {    // array?
+					json += ']'               // try to fix it
+				} else if (first == '{') {    // object?
+					json += '}'               // try to fix it
 				}
 				try { // parsed correctly so update data
 					parsed  = JSON.parse(json)
 				} catch (e) {
-					parsed = false
+					parsed = undefined
 				}
-				if (!parsed) {
+				if (parsed === undefined) {
 					if (!config.ignoreErrors) this.emit('error', 'could not fix: ' + json)
 					callback()
 					return
 				}
-			} // todo: handle potential injections: http://media.blackhat.com/bh-us-11/Sullivan/BH_US_11_Sullivan_Server_Side_WP.pdf
+			} 
+			// todo: handle potential injections: http://media.blackhat.com/bh-us-11/Sullivan/BH_US_11_Sullivan_Server_Side_WP.pdf
 			for (var i in parsed) {
 				var val = parsed[i]
 				if (typeof val == 'string') {
-					val     = S(parsed[i]).replaceAll("\n", ' ').s
-					val     = S(val).replaceAll("\r", ' ').s
-					val     = S(val).replaceAll("\t", ' ').s
+					val     = parsed[i]
+					if (config.collapseWhitespace) val = S(val).collapseWhitespace().s
 					val     = S(val).replaceAll("\0", '').s
-					val     = S(val).replaceAll('   ', ' ').s
-					val     = S(val).replaceAll('  ', ' ').s
 					val     = S(val).trim().s
 					if (val != parsed[i]) {
 //						console.log('fixed:', val)
@@ -75,7 +72,6 @@ function JsonFixStream(config) {
 		callback()
 	};
 }
-
 
 util.inherits(JsonFixStream, stream)
 module.exports = JsonFixStream

@@ -13,12 +13,13 @@ function JsonFixStream(config) {
  	stream.call(this, { objectMode: true })
 	config = (config) ? config : {}
 	var DEFAULT = {
-		ignoreErrors: false,
-		replace:      {}
+		onErrors:        'ignore', // options: 'log' 'emit', 'throw', everything else is ignore
+		cleanWhiteSpace: false,
+		replace:         {}
 	}
-	this.config = xtend(DEFAULT, config) 
+	config = xtend(DEFAULT, config) 
 
-	function tryToParse(data) {
+	function tryToParse(json) {
 		var parsed = undefined
 		try {
 			parsed = JSON.parse(json)
@@ -28,56 +29,47 @@ function JsonFixStream(config) {
 		return parsed
 	}
 
+
 	this._transform = function (data, encoding, callback) {
+		function handleError(json) {
+			var msg = 'JsonFixStream could not fix: ' + json
+			switch (config.onErrors) {
+				case 'log':   console.log(msg);        break
+				case 'throw': throw new Error(msg);    break
+				case 'emit':  self.emit('error', msg); break
+			}
+			callback()
+		}
+
 		if (data) {
 			var json   = data.toString('utf8')
 			var parsed = tryToParse(json)
 			if (parsed === undefined) {
-				json            = S(json).trim().s
+				var json2           = S(json).trim().s
 				var first       = json.substr(0,1)
 				var last        = json.substr(-1)
 				if (first == '[') {
-					json += ']'
+					json2 += ']'
 				} else if (first == '{') {
-					json += '}'
-				} else {
-					if (!this.config.ignoreErrors) {
-						json += 'debug config:' + JSON.stringify(this.config)
-						throw new Error('JsonFixStream could not fix: ' + json)
-					}
-					callback()
-					return
+					json2 += '}'
 				}
-				parsed = tryToParse(json)
+				parsed = tryToParse(json2)
 			}
-			if (parsed === undefined) {
-				if (!this.config.ignoreErrors) {
-					json += 'debug config:' + JSON.stringify(this.config)
-					this.emit('error', 'JsonFixStream could not fix: ' + json)
-				}
-				callback()
-				return
-			} 
+			if (parsed === undefined) return handleError(json)
 
 			// todo: handle potential injections: http://media.blackhat.com/bh-us-11/Sullivan/BH_US_11_Sullivan_Server_Side_WP.pdf
 			for (var i in parsed) {
 				var val = parsed[i]
-				if (typeof val == 'string') {
-					val     = S(parsed[i]).replaceAll("\n", ' ').s
-					val     = S(val).replaceAll("\r", ' ').s
-					val     = S(val).replaceAll("\t", ' ').s
+				if (typeof val == 'string' && config.cleanWhiteSpace) {
+					val     = S(parsed[i]).collapseWhitespace().s
 					val     = S(val).replaceAll("\0", '').s
-					val     = S(val).replaceAll('   ', ' ').s
-					val     = S(val).replaceAll('  ', ' ').s
-					val     = S(val).trim().s
 					if (val != parsed[i]) {
-//						console.log('fixed:', val)
 						parsed[i] = val
 					}
 				}
-				if (this.config.replace[i]) {
+				if (config.replace[i]) {
 					delete parsed[i]
-					parsed[this.config.replace[i]] = val
+					parsed[config.replace[i]] = val
 				}
 			}
 			data           = new Buffer(JSON.stringify(parsed), 'utf8')

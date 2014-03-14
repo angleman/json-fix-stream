@@ -1,5 +1,6 @@
 // json-fix-stream
 // Fix malformed JSON stream
+
 "use strict"
 var conflate  = require('conflate') // Munge some objects together, deep by default. kommander/conflate.js
 , util        = require('util')
@@ -30,10 +31,15 @@ function JsonFixStream(config) {
 				var last        = json.substr(-1)
 				if (last == ',') {
 					json = json.substr(0, -1) // drop dangling comma
-				} else if (first == '[') {    // array?
+				}
+				if (first == '[') {           // array?
 					json += ']'               // try to fix it
 				} else if (first == '{') {    // object?
 					json += '}'               // try to fix it
+				} else {
+					if (!config.ignoreErrors) this.emit('error', 'JsonFixStream could not fix: ' + json)
+					callback()
+					return
 				}
 				try { // parsed correctly so update data
 					parsed  = JSON.parse(json)
@@ -41,7 +47,7 @@ function JsonFixStream(config) {
 					parsed = undefined
 				}
 				if (parsed === undefined) {
-					if (!config.ignoreErrors) this.emit('error', 'could not fix: ' + json)
+					if (!config.ignoreErrors) this.emit('error', 'JsonFixStream could not fix: ' + json)
 					callback()
 					return
 				}

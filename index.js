@@ -29,10 +29,10 @@ function JsonFixStream(config) {
 		return parsed
 	}
 
-
 	this._transform = function (data, encoding, callback) {
 		function handleError(json) {
-			var msg = 'JsonFixStream could not fix: ' + json
+			var msg = 'Could not fix: ' + json
+			if (config.reference) msg = config.reference + ':' + msg
 			switch (config.onErrors) {
 				case 'log':   console.log(msg);        break
 				case 'throw': throw new Error(msg);    break
@@ -46,6 +46,10 @@ function JsonFixStream(config) {
 			var parsed = tryToParse(json)
 			if (parsed === undefined) {
 				var json2           = S(json).trim().s
+				if (config.cleanWhiteSpace && json2.length == 0) {
+					callback()
+					return
+				}
 				var first       = json.substr(0,1)
 				var last        = json.substr(-1)
 				if (first == '[') {

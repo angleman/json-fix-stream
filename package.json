@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "readable-stream": "~1.0.26",
-    "conflate": "~1.1.0",
-    "string": "^1.8.0"
+    "string": "^1.8.0",
+    "xtend": "^2.1.2"
   },
   "devDependencies": {
     "grunt": "^0.4.3",

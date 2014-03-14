@@ -1,4 +1,4 @@
-// json-fix-stream
+// json-fix-stream by angleman, MIT
 // Fix malformed JSON stream
 "use strict"
 

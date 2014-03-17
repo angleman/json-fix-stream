@@ -45,7 +45,7 @@ function JsonFixStream(config) {
 			var json   = data.toString('utf8')
 			var parsed = tryToParse(json)
 			if (parsed === undefined) {
-				var json2           = S(json).trim().s
+				var json2 = S(json).trim().s
 				if (config.cleanWhiteSpace && json2.length == 0) {
 					callback()
 					return
@@ -58,6 +58,22 @@ function JsonFixStream(config) {
 					json2 += '}'
 				}
 				parsed = tryToParse(json2)
+				if (parsed === undefined) { // try removing trailing characters after last }
+					json2 = S(json).trim().s.split('}')
+					if (json2.length > 0) {
+						delete json2[json2.length-1]
+						json2 = json2.join('}')
+						parsed = tryToParse(json2)
+					}
+				}
+				if (parsed === undefined) { // try removing trailing characters after last ]
+					json2 = S(json).trim().s.split(']')
+					if (json2.length > 0) {
+						delete json2[json2.length-1]
+						json2 = json2.join(']')
+						parsed = tryToParse(json2)
+					}
+				}
 			}
 			if (parsed === undefined) return handleError(json)
 

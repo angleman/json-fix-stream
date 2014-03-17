@@ -58,7 +58,7 @@ function JsonFixStream(config) {
 					json2 += '}'
 				}
 				parsed = tryToParse(json2)
-/*				if (parsed === undefined) { // try removing trailing characters after last }
+				if (parsed === undefined) { // try removing trailing characters after last }
 					json2 = S(json).trim().s.split('}')
 					if (json2.length > 0) {
 						delete json2[json2.length-1]
@@ -73,7 +73,7 @@ function JsonFixStream(config) {
 						json2 = json2.join(']')
 						parsed = tryToParse(json2)
 					}
-				} */
+				}
 			}
 			if (parsed === undefined) return handleError(json)
 
